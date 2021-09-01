@@ -141,14 +141,18 @@ class BankMachine(Module):
             )
         ]
 
+        def cmd_buf_adjust(latency):
+            cmd_buf_depth = 1
+            return latency + cmd_buf_depth if latency is not None else None
+
         # tWTP (write-to-precharge) controller -----------------------------------------------------
         write_latency = math.ceil(settings.phy.cwl / settings.phy.nphases)
         precharge_time = write_latency + settings.timing.tWR + settings.timing.tCCD # AL=0
-        self.submodules.twtpcon = twtpcon = tXXDController(precharge_time)
+        self.submodules.twtpcon = twtpcon = tXXDController(cmd_buf_adjust(precharge_time))
         self.comb += twtpcon.valid.eq(cmd.valid & cmd.ready & cmd.is_write)
 
         # tRC (activate-activate) controller -------------------------------------------------------
-        self.submodules.trccon = trccon = tXXDController(settings.timing.tRC)
+        self.submodules.trccon = trccon = tXXDController(cmd_buf_adjust(settings.timing.tRC))
         self.comb += trccon.valid.eq(cmd.valid & cmd.ready & row_open)
 
         # tRAS (activate-precharge) controller -----------------------------------------------------
@@ -239,3 +243,7 @@ class BankMachine(Module):
         )
         fsm.delayed_enter("TRP", "ACTIVATE", settings.timing.tRP - 1)
         fsm.delayed_enter("TRCD", "REGULAR", settings.timing.tRCD - 1)
+
+        self.submodules.cmd_out_buf = cmd_out_buf = stream.SyncFIFO(cmd_request_rw_layout(a, ba), 2, buffered=True)
+        self.comb += cmd.connect(cmd_out_buf.sink)
+        self.cmd = cmd_out_buf.source

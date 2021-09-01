@@ -125,6 +125,8 @@ class TestBankMachine(unittest.TestCase):
                 yield dut.bankmachine.req.valid.eq(0)
                 for _ in range(req.get("delay", 0)):
                     yield
+            yield
+            yield
 
         def req_consumer(dut):
             for req in requests:
@@ -135,6 +137,8 @@ class TestBankMachine(unittest.TestCase):
                 while not (yield signal):
                     yield
                 yield
+            yield
+            yield
 
         @passive
         def cmd_consumer(dut):

@@ -156,7 +156,7 @@ class TestMultiplexer(unittest.TestCase):
         # Verify the timing of READ to WRITE transition.
         def main_generator(dut):
             rtw = dut.settings.phy.read_latency
-            expected = "r" + (rtw - 1) * ">" + "w"
+            expected = "rr" + (rtw - 1) * ">" + "w"
             states = ""
 
             # Set write_available=1
@@ -184,7 +184,7 @@ class TestMultiplexer(unittest.TestCase):
             write_latency = math.ceil(dut.settings.phy.cwl / dut.settings.phy.nphases)
             wtr = dut.settings.timing.tWTR + write_latency + dut.settings.timing.tCCD or 0
 
-            expected = "w" + (wtr - 1) * ">" + "r"
+            expected = "ww" + (wtr - 1) * ">" + "r"
             states   = ""
 
             # Simulate until we are in WRITE
